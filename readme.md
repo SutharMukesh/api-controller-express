@@ -1,18 +1,18 @@
 # Api Controller
-A controller library which creates `collections` based routes.
+A controller library which creates `collections` based routes and handles JSON Schema based data validations.
 
 ## Collection Structure
 
 ```ascii
 .
-├── collections
-│   ├── collection-name-one
+├── collections-folder/
+│   ├── collection-one
 │   │   └── index.js
-│   ├── collection-name-two
+│   ├── collection-two
 │   │   └── index.js
-│   └── collection-name-three
+│   └── collection-three
 │       └── index.js
-└── test.js
+└── service.test.js
 ```
 
 ## Usage
@@ -20,55 +20,65 @@ A controller library which creates `collections` based routes.
 
 
 ### Library in action
-- The file where you'll use the controller
+- The file where you'll use the api-controller
     ```js
-    const app = require("express")();
-    const controller = require("api-controller");
-    const router = app.Router;
+    const express = require("express");
+    const controller = require("api-controller-express");
+    const bodyParser = require('body-parser')
 
-    controller({ collectionPath: "path-to-base-url/collections", baseUrl: "base-url", app });
+    const app = express();
+
+    // for parsing application/json
+    app.use(bodyParser.json()) 
+
+    // Creates POST routes based on modules under collectionPath.
+    controller({ collectionPath: "path-to-your-collections", baseUrl: "/sample-base-url", app });
+
+    // Error Handling Middleware
+    app.use((err, req, res, next) => {
+        console.log(err.message);
+        res.status(500).send({ status: "unsucess", error: err.message });
+    });
 
     app.listen(3000, () => console.log("server running"));
     ```
-- `collection-name/index.js` file format
+- A Collection file format - `collection-name-one/index.js` 
     ```js
+    // JSON Schema handled by AJV -- https://json-schema.org/
     const schema = {
-        read: {
-            type: 'object',
-            properties: {
-                user: { type: 'object' },
-                dataobj: {type: 'object'}
-            },
-            required: ['dataobj', 'user']
-        }
         update: {
-            type: 'object',
+            type: "object",
             properties: {
-                user: { type: 'object' },
-                dataobj: {type: 'object'}
+                user: { type: "object" },
+                dataobj: { type: "object" },
             },
-            required: ['dataobj', 'user']
-        }
+            required: ["dataobj", "user"],
+        },
     };
 
-    module.exports = app => {
-        const dbutil = utils(app);
-
+    module.exports = (app) => {
+        // This is where you'll be writing all logic code.
         const operations = {
-            read: async data => {
-                
-                return result;
+            read: async (data) => {
+                console.log("inside read of route 1");
+                return { status: "success" };
             },
 
-            update: async data => {
-                
-                return result;
-            }
+            update: async (data) => {
+                console.log("inside update of route 1");
+                return { status: "success" };
+            },
         };
         return {
             operations,
             schema
         };
     };
-
     ```
+- The `controller` then creates routes for you in this format.
+  ```sh
+    POST http://localhost:port/<base-url-you-passed-in-controller>/<foldername-under-collectionPath>/<operation>
+  ```
+  - So for above code example the controller creates following routes
+    - POST `http://127.0.0.1:3000/sample-base-url/collection-name-one/read`
+    - POST `http://127.0.0.1:3000/sample-base-url/collection-name-one/update`

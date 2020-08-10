@@ -22,27 +22,25 @@ A controller library which creates `collections` based routes and handles JSON S
 ### Library in action
 - The file where you'll use the api-controller
     ```js
-    const express = require("express");
-    const controller = require("api-controller-express");
-    const bodyParser = require('body-parser')
-
-    const app = express();
-
-    // for parsing application/json
-    app.use(bodyParser.json()) 
-
-    // Creates POST routes based on modules under collectionPath.
+    /**
+   * Controller which goes through all collections
+   * and create POST routes based on operations
+   * and validate data based on schemas
+   *
+   * @param {Object} params
+   * @param {string} params.collectionPath - path where all your collections are stored
+   * @param {string} params.baseUrl - Base url set to your collection
+   * @param {Application} params.app - Express instance
+   */
+    
     controller({ collectionPath: "path-to-your-collections", baseUrl: "/sample-base-url", app });
 
-    // Error Handling Middleware
-    app.use((err, req, res, next) => {
-        console.log(err.message);
-        res.status(500).send({ status: "unsucess", error: err.message });
-    });
-
-    app.listen(3000, () => console.log("server running"));
     ```
-- A Collection file format - `collection-name-one/index.js` 
+- A Collection **file format** - `collection-name-one/index.js` 
+  - ✅ Crud services for a collection.
+  - ✅ Operation level schemas.
+  - 🌟 Re-use operations without using rest call.
+  - ✅ Supports all express `res` methods in operations.
     ```js
     // JSON Schema handled by AJV -- https://json-schema.org/
     const schema = {
@@ -59,9 +57,10 @@ A controller library which creates `collections` based routes and handles JSON S
     module.exports = (app) => {
         // This is where you'll be writing all logic code.
         const operations = {
+            // CRUD Operations
             read: async (data) => {
                 console.log("inside read of route 1");
-                return { status: "success" };
+                return { status: "success" };   
             },
 
             update: async (data) => {
@@ -75,6 +74,29 @@ A controller library which creates `collections` based routes and handles JSON S
         };
     };
     ```
+
+- More control over `res` object of expressjs 
+  ```js
+    const operations = {
+        read: async (data) => {
+            // res.status(200).json({ status: "success" })
+            return { status: "success" };   
+       
+            // res.status(500).json({ status: "unsuccess" })
+            return { status: "unsuccess" };
+
+            // res.status(200).download("pathoffile","file.txt")
+            return { resMethod:"download",resParams:["pathoffile","file.txt"]}
+
+            // res.status(205).json({ status: "unsuccess" })
+            return { status: "unsuccess" };
+        }
+    };
+  ```
+> ***Note:***  
+> For more usecases - refer `/example` folder 
+
+### Routes
 - The `controller` then creates routes for you in this format.
   ```sh
     POST http://localhost:port/<base-url-you-passed-in-controller>/<foldername-under-collectionPath>/<operation>

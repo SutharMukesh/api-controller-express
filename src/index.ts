@@ -1,14 +1,15 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable import/no-unresolved */
 /* eslint-disable import/extensions */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/no-dynamic-require */
 /* eslint-disable global-require */
-import { Request, Response, NextFunction, Application } from 'express';
+import { Request, NextFunction, Application } from 'express';
 
 import * as path from 'path';
 import * as fs from 'fs';
-import schemaValidator from './validator';
+import { schemaValidator, getStatusCode } from './validator';
 
 /**
  * Controller which goes through all collections
@@ -30,15 +31,27 @@ const apicontroller = (params: { collectionPath: string; baseUrl: string; app: A
         if (Object.keys(operations).length === 0) throw new Error(`No operations defined for ${collection}`);
 
         Object.keys(operations).map((operation: string) => {
-            return app.post(`${baseUrl}/${collection}/${operation}`, async (req: Request, res: Response, next: NextFunction) => {
+            return app.post(`${baseUrl}/${collection}/${operation}`, async (req: Request, res: any, next: NextFunction) => {
                 try {
                     if (schema[operation]) {
                         schemaValidator({ schema: schema[operation], data: req.body });
                     } else {
                         console.warn(`No Schema found for operaion:${operation} in ${collection} collection`);
                     }
-                    const result = await operations[operation](req.body);
-                    return res.json(result);
+                    const toResponseObj = await operations[operation](req.body);
+
+                    // Set response status code
+                    const statusCode: number = getStatusCode(toResponseObj);
+                    res = res.status(statusCode);
+
+                    // Get resMethod and parameters for the same
+                    if (!toResponseObj.resMethod) {
+                        return res.json(toResponseObj);
+                    }
+                    const { resParams, resMethod }: { resParams: Array<any> | string | undefined; resMethod: string } = toResponseObj;
+                    const parameters = Array.isArray(resParams) ? resParams : [resParams];
+
+                    return res[resMethod](...parameters);
                 } catch (error) {
                     return next(error);
                 }

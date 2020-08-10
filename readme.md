@@ -76,20 +76,25 @@ A controller library which creates `collections` based routes and handles JSON S
     ```
 
 - More control over `res` object of expressjs 
+    > res methods - [link](https://expressjs.com/en/5x/api.html#res) 
   ```js
     const operations = {
         read: async (data) => {
+            // Default
             // res.status(200).json({ status: "success" })
             return { status: "success" };   
        
+            // Auto 500 for Unsuccess 
             // res.status(500).json({ status: "unsuccess" })
             return { status: "unsuccess" };
 
+            // Custom methods of res
             // res.status(200).download("pathoffile","file.txt")
             return { resMethod:"download",resParams:["pathoffile","file.txt"]}
 
+            // Custom status code
             // res.status(205).json({ status: "unsuccess" })
-            return { status: "unsuccess" };
+            return { status: 205 };
         }
     };
   ```

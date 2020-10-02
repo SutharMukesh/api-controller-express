@@ -11,11 +11,7 @@ const app = express();
 // for parsing application/json
 app.use(bodyParser.json());
 
-/**
- * Creates POST routes based on modules under collectionPath.
- * 
- */
-// 
+// Creates collection wise POST routes.
 controller({ collectionPath: path.join(__dirname, './collections'), baseUrl: '/sample-base-url', app });
 
 // Error Handling Middleware

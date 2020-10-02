@@ -37,10 +37,10 @@ A controller library which creates `collections` based routes and handles JSON S
 
     ```
 - A Collection **file format** - `collection-name-one/index.js` 
-  - ✅ Crud services for a collection.
-  - ✅ Operation level schemas.
+  - ✅ CRUD Operation for a collection.
+  - ✅ Operation level schema validation.
   - 🌟 Re-use operations without using rest call.
-  - ✅ Supports all express `res` methods in operations.
+  - ✅ Supports all express response(`res`) methods in operations.
     ```js
     // JSON Schema handled by AJV -- https://json-schema.org/
     const schema = {
@@ -104,7 +104,7 @@ A controller library which creates `collections` based routes and handles JSON S
 ### Routes
 - The `controller` then creates routes for you in this format.
   ```sh
-    POST http://localhost:port/<base-url-you-passed-in-controller>/<foldername-under-collectionPath>/<operation>
+    POST http://localhost:port/<base-url-you-passed-in-controller>/<foldername-under-collectionPath>/<operation>/<scope>
   ```
   - So for above code example the controller creates following routes
     - POST `http://127.0.0.1:3000/sample-base-url/collection-name-one/read`

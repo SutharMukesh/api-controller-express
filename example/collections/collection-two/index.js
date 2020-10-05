@@ -15,12 +15,12 @@ const schema = {
 module.exports = (app) => {
     // This is where you'll be writing all logic code.
     const operations = {
-        read: async (data) => {
+        read: async (req) => {
             console.log('inside read of collection-two -- read');
             return { status: 'success' };
         },
 
-        update: async (data) => {
+        update: async (req) => {
             console.log('inside update of collection-two -- update');
             return { status: 'success' };
         },

@@ -22,20 +22,23 @@ import { schemaValidator, getStatusCode } from './validator';
  * @param {Application} params.app - Express instance
  * @returns {Application} app object.
  */
-const createRoute = (params: { route: string; operation: Function; schema: object; app: Application }): Application => {
+const createRoute = (params: { route: string; operation: Function; schema: { [key: string]: any }; app: Application }): Application => {
     const { route, operation, schema, app } = params;
-    console.log(`creating ${route}`)
+    console.log(`creating ${route}`);
     return app.post(route, async (req: Request, res: any, next: NextFunction) => {
         try {
             // Validate body data with its schema
-            if (schema) {
-                schemaValidator({ schema, data: req.body });
+            const { scope } = req.params;
+            if (schema[`${operation.name}_${scope}`]) {
+                schemaValidator({ schema: schema[`${operation.name}_${scope}`], data: req.body });
+            } else if (schema[operation.name]) {
+                schemaValidator({ schema: schema[operation.name], data: req.body });
             } else {
                 console.warn(`No Schema found for route: ${route}`);
             }
 
             // Run the particular operation for this route.
-            const toResponseObj = await operation(req.body);
+            const toResponseObj = await operation(req);
 
             // Set response status code
             const statusCode: number = getStatusCode(toResponseObj);
@@ -82,9 +85,9 @@ const apicontroller = (params: { collectionPath: string; baseUrl: string; app: A
         // Create route for each operation.
         Object.keys(operations).map((operation: string) => {
             return createRoute({
-                route: `${baseUrl}/${collection}/${operation}`,
+                route: `${baseUrl}/${collection}/${operation}/:scope?`,
                 operation: operations[operation],
-                schema: schema[operation],
+                schema,
                 app,
             });
         });

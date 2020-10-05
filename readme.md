@@ -1,5 +1,5 @@
 # Api Controller
-A controller library which creates `collections` based routes and handles JSON Schema based data validations.
+A controller library which creates `collection` based routes and handles JSON Schema based data validations.
 
 ## Collection Structure
 
@@ -12,7 +12,7 @@ A controller library which creates `collections` based routes and handles JSON S
 │   │   └── index.js
 │   └── collection-three
 │       └── index.js
-└── service.test.js
+└── server.js
 ```
 
 ## Usage
@@ -38,74 +38,92 @@ A controller library which creates `collections` based routes and handles JSON S
     ```
 - A Collection **file format** - `collection-name-one/index.js` 
   - ✅ CRUD Operation for a collection.
-  - ✅ Operation level schema validation.
+  - ✅ Operation and Scope level schema validation.
   - 🌟 Re-use operations without using rest call.
-  - ✅ Supports all express response(`res`) methods in operations.
     ```js
     // JSON Schema handled by AJV -- https://json-schema.org/
     const schema = {
-        update: {
-            type: "object",
+        read: {
+            type: 'object',
             properties: {
-                user: { type: "object" },
-                dataobj: { type: "object" },
+                user: { type: 'object' },
             },
-            required: ["dataobj", "user"],
+            required: ['user'],
+        },
+        // Schema for scope support
+        read_download: {
+            type: 'object',
+            properties: {
+                user: { type: 'object' },
+                dataobj: { type: 'object' },
+            },
+            required: ['dataobj', 'user'],
         },
     };
 
     module.exports = (app) => {
         // This is where you'll be writing all logic code.
         const operations = {
-            // CRUD Operations
-            read: async (data) => {
-                console.log("inside read of route 1");
-                return { status: "success" };   
-            },
+            read: async (req) => {
+                console.log('inside read of collection-one');
 
-            update: async (data) => {
-                console.log("inside update of route 1");
-                return { status: "success" };
+                // Get scope from the route
+                const { scope } = req.params;
+
+                if (scope === 'xyz') {
+                    // Logic to read a data based on scope xyz
+                    return { status: 'success', data: 'xyz_data' };
+                }
+
+                if (scope === 'download') {
+                    // logic to read data and send data as a file.
+                    // res.status(200).download("pathoffile","file.txt")
+                    return { resMethod: 'download', resParams: [path.join(__dirname, './index.js'), 'index.js'] };
+                }
+
+                // logic to read data without scope.
+                // res.status(200).json({ status: 'success', data: 'mydata' })
+                return { status: 'success', data: 'mydata' };
+            },
+            create: async (req) => {
+                console.log('inside create of collection-one');
+
+                const data = req.body;
+                // Logic to write a data into db.
+                // res.status(500).json({ status: "unsuccess" })
+                return { status: '201' };
+            },
+            update: async (req) => {
+                console.log('inside update of collection-one');
+
+                const data = req.body;
+                // update data logic
+                // res.status(200).json({ status: "success", message: 'data updated with custom status code'  })
+                return { status: 'success', message: 'data updated with custom status code' };
+            },
+            delete: async (req) => {
+                console.log('inside delete of collection-one');
+
+                // delete a data form db
+                // res.status(200).json({ status: 'success' })
+                return { status: 'success' };
             },
         };
         return {
             operations,
-            schema
+            schema,
         };
     };
     ```
 
-- More control over `res` object of expressjs 
-    > res methods - [link](https://expressjs.com/en/5x/api.html#res) 
-  ```js
-    const operations = {
-        read: async (data) => {
-            // Default
-            // res.status(200).json({ status: "success" })
-            return { status: "success" };   
-       
-            // Auto 500 for Unsuccess 
-            // res.status(500).json({ status: "unsuccess" })
-            return { status: "unsuccess" };
-
-            // Custom methods of res
-            // res.status(200).download("pathoffile","file.txt")
-            return { resMethod:"download",resParams:["pathoffile","file.txt"]}
-
-            // Custom status code
-            // res.status(205).json({ status: "unsuccess" })
-            return { status: 205 };
-        }
-    };
-  ```
-> ***Note:***  
-> For more usecases - refer `/example` folder 
-
 ### Routes
-- The `controller` then creates routes for you in this format.
+- The `controller` then creates following routes.
   ```sh
     POST http://localhost:port/<base-url-you-passed-in-controller>/<foldername-under-collectionPath>/<operation>/<scope>
   ```
+  > Here **scope** is Optional
   - So for above code example the controller creates following routes
-    - POST `http://127.0.0.1:3000/sample-base-url/collection-name-one/read`
-    - POST `http://127.0.0.1:3000/sample-base-url/collection-name-one/update`
+    - POST `http://127.0.0.1:3000/sample-base-url/collection-name-one/read/:scope`
+    - POST `http://127.0.0.1:3000/sample-base-url/collection-name-one/update/:scope`
+    - POST `http://127.0.0.1:3000/sample-base-url/collection-name-one/create/:scope`
+    - POST `http://127.0.0.1:3000/sample-base-url/collection-name-one/delete/:scope`

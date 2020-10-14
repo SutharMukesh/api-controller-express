@@ -1,6 +1,6 @@
 {
   "name": "api-controller-express",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A library which creates express routes based on collections.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

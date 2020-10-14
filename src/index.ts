@@ -24,7 +24,6 @@ import { schemaValidator, getStatusCode } from './validator';
  */
 const createRoute = (params: { route: string; operation: Function; schema: { [key: string]: any }; app: Application }): Application => {
     const { route, operation, schema, app } = params;
-    console.log(`creating ${route}`);
     return app.post(route, async (req: Request, res: any, next: NextFunction) => {
         try {
             // Validate body data with its schema

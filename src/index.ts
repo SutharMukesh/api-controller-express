@@ -111,7 +111,7 @@ const apicontroller = (params: { collectionPath: string; baseUrl: string; app: A
         // Check operations object should not be empty
         if (!operations || Object.keys(operations).length === 0) throw new Error(`No operations defined for ${collection}`);
 
-        collection = path.dirname(collection.replace(collectionPath, ''));
+        collection = path.dirname(collection.replace(collectionPath, '')).replace(/\\/gi, '/');
         // Create route for each operation.
         Object.keys(operations).map((operation: string) => {
             return createRoute({
